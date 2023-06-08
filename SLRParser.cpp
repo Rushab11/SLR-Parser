@@ -4,6 +4,7 @@
 #include <set>
 #include <stack>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -470,9 +471,9 @@ bool parseString(string &input, map<pair<int, char>, string> &parsingTable,
                  map<pair<int, char>, int> gotoTable) {
   stack<int> stateStack;
   stateStack.push(0);
-
   stack<char> symbolStack;
   symbolStack.push('$');
+  
 
   size_t currentPosition = 0;
   char currentSymbol = input[currentPosition];
@@ -550,7 +551,6 @@ void displayCanonicalCollection(
 
 int getProductions(vector<char> &nonTerminals, vector<char> &terminals, vector<vector<string> > &productions){
   cout << "Please enter your grammar in the form \n\tS->AA\n\tA->aA\n\tA->b\n" << endl;
-
 
   bool first = true;
 
