@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -29,7 +28,7 @@ struct LR0Item {
 
 // Function to compute the closure of an LR(0) item
 set<LR0Item> computeClosure(const LR0Item &item, vector<char> &nonTerminals,
-                            vector<vector<string>> &productions) {
+                            vector<vector<string> > &productions) {
   set<LR0Item> closure;
   closure.insert(item);
 
@@ -37,15 +36,18 @@ set<LR0Item> computeClosure(const LR0Item &item, vector<char> &nonTerminals,
   stack.push_back(item);
 
   while (!stack.empty()) {
+
     LR0Item currentItem = stack.back();
     stack.pop_back();
 
     size_t dotPosition = currentItem.rhs.find('.');
     if (dotPosition != string::npos &&
         dotPosition < currentItem.rhs.length() - 1) {
+
       char nextSymbol = currentItem.rhs[dotPosition + 1];
       if (find(nonTerminals.begin(), nonTerminals.end(), nextSymbol) !=
           nonTerminals.end()) {
+        
         // Next symbol is a non-terminal, expand it
         for (const vector<string> &production : productions) {
           if (production[0][0] == nextSymbol) {
@@ -68,7 +70,7 @@ set<LR0Item> computeClosure(const LR0Item &item, vector<char> &nonTerminals,
 // Function to compute the goto set for a given set of LR(0) items and a symbol
 set<LR0Item> computeGoto(const set<LR0Item> &items, char symbol,
                          vector<char> &nonTerminals,
-                         vector<vector<string>> &productions) {
+                         vector<vector<string> > &productions) {
   set<LR0Item> goToSet;
 
   for (const LR0Item &item : items) {
@@ -91,8 +93,9 @@ set<LR0Item> computeGoto(const set<LR0Item> &items, char symbol,
 }
 
 // A function to compute the first set for a non-terminal symbol
-set<char> computeFirstSet(char nonTerminal, vector<vector<string>> &productions,
-                          map<char, set<char>> &firstSets) {
+set<char> computeFirstSet(char nonTerminal, vector<vector<string> > &productions,
+                          map<char, set<char> > &firstSets) {
+  
   // Check if we've already computed the first set for this non-terminal
   if (firstSets.find(nonTerminal) != firstSets.end()) {
     return firstSets[nonTerminal];
@@ -146,9 +149,9 @@ set<char> computeFirstSet(char nonTerminal, vector<vector<string>> &productions,
 
 // A function to compute the follow set for a non-terminal symbol
 set<char> computeFollowSet(char nonTerminal,
-                           vector<vector<string>> &productions,
-                           map<char, set<char>> &firstSets,
-                           map<char, set<char>> &followSets) {
+                           vector<vector<string> > &productions,
+                           map<char, set<char> > &firstSets,
+                           map<char, set<char> > &followSets) {
   // Check if we've already computed the follow set for this non-terminal
   if (followSets.find(nonTerminal) != followSets.end()) {
     return followSets[nonTerminal];
@@ -174,27 +177,38 @@ set<char> computeFollowSet(char nonTerminal,
             while (flag) {
               set<char> firstSymbolFirstSet =
                   computeFirstSet(rhsSymbol[j + count], productions, firstSets);
+
+
               if (firstSymbolFirstSet.find('~') != firstSymbolFirstSet.end()) {
+
+
                 firstSymbolFirstSet.erase('~');
                 count++;
                 follow.insert(firstSymbolFirstSet.begin(),
                               firstSymbolFirstSet.end());
-              } else if (rhsSymbol[j + count] == '\0') {
+              } else if (rhsSymbol[j + count] == '\0' && rhsSymbol[j] != rule[0][0]) {
+
                 set<char> lhsFollowSet = computeFollowSet(
                     rule[0][0], productions, firstSets, followSets);
+
                 follow.insert(lhsFollowSet.begin(), lhsFollowSet.end());
+
                 flag = false;
               } else {
+
                 follow.insert(firstSymbolFirstSet.begin(),
                               firstSymbolFirstSet.end());
                 flag = false;
               }
             }
-          } else if (rhsSymbol[j + 1] == '\0') {
+          } else if (rhsSymbol[j + 1] == '\0' && rhsSymbol[j] != rule[0][0]) {
+
             set<char> lhsFollowSet = computeFollowSet(rule[0][0], productions,
                                                       firstSets, followSets);
+
             follow.insert(lhsFollowSet.begin(), lhsFollowSet.end());
           } else {
+
             follow.insert(rhsSymbol[j + 1]);
           }
         }
@@ -208,22 +222,24 @@ set<char> computeFollowSet(char nonTerminal,
 }
 
 // Function to compute the canonical collection of LR(0) items
-vector<set<LR0Item>>
+vector<set<LR0Item> >
 computeCanonicalCollection(vector<char> &nonTerminals, vector<char> &terminals,
-                           vector<vector<string>> &productions,
+                           vector<vector<string> > &productions,
                            map<pair<int, char>, string> &parsingTable,
                            map<pair<int, char>, int> &gotoTable) {
-  vector<set<LR0Item>> canonicalCollection;
+  vector<set<LR0Item> > canonicalCollection;
   set<LR0Item> initialItem;
 
   // Create a map to cache the computed first sets
-  map<char, set<char>> firstSets;
+  map<char, set<char> > firstSets;
 
   // Iterate through each non-terminal symbol and compute its first set
   for (auto &rule : productions) {
     char nonTerminal = rule[0][0];
     computeFirstSet(nonTerminal, productions, firstSets);
   }
+    
+  cout << "First of Production Rules: \n" << endl;
 
   for (auto &entry : firstSets) {
     char nonTerminal = entry.first;
@@ -236,12 +252,13 @@ computeCanonicalCollection(vector<char> &nonTerminals, vector<char> &terminals,
     cout << "}" << endl;
   }
 
-  map<char, set<char>> followSets;
+  map<char, set<char> > followSets;
 
   for (auto &rule : productions) {
     char nonTerminal = rule[0][0];
     computeFollowSet(nonTerminal, productions, firstSets, followSets);
   }
+  cout << "\nFollow of Production Rules: \n" << endl;
 
   for (auto &entry : followSets) {
     char nonTerminal = entry.first;
@@ -262,14 +279,19 @@ computeCanonicalCollection(vector<char> &nonTerminals, vector<char> &terminals,
   initialItem = computeClosure(item, nonTerminals, productions);
   canonicalCollection.push_back(initialItem);
 
+
+
   for (size_t i = 0; i < canonicalCollection.size(); i++) {
     set<LR0Item> currentItemSet = canonicalCollection[i];
 
     // Find all unique symbols following the dot in the current item set
     set<char> symbols;
     for (const LR0Item &item : currentItemSet) {
+
       size_t dotPosition = item.rhs.find('.');
+
       if (dotPosition != string::npos && dotPosition < item.rhs.length() - 1) {
+
         char symbol = item.rhs[dotPosition + 1];
         symbols.insert(symbol);
       }
@@ -277,14 +299,18 @@ computeCanonicalCollection(vector<char> &nonTerminals, vector<char> &terminals,
     // Compute the Goto sets for each symbol and add them to the canonical
     // collection
     for (char symbol : symbols) {
+
       set<LR0Item> goToSet =
           computeGoto(currentItemSet, symbol, nonTerminals, productions);
+
+
 
       // Check if the computed Goto set already exists in the canonical
       // collection
       auto it =
           find(canonicalCollection.begin(), canonicalCollection.end(), goToSet);
       if (it == canonicalCollection.end()) {
+
         canonicalCollection.push_back(goToSet);
       }
     }
@@ -343,14 +369,16 @@ computeCanonicalCollection(vector<char> &nonTerminals, vector<char> &terminals,
 
 void printParsingTable(map<pair<int, char>, string> &parsingTable,
                        map<pair<int, char>, int> gotoTable,
-                       vector<vector<string>> &productions,
+                       vector<vector<string> > &productions,
                        vector<char> &terminals, vector<char> &nonTerminals,
-                       vector<set<LR0Item>> &canonicalCollection) {
+                       vector<set<LR0Item> > &canonicalCollection) {
   cout << "Parsing Table:" << endl;
   cout << "+----------";
   for (char symbol : terminals) {
     cout << "----------";
   }
+    cout << "------";
+
   cout << "----------+" << endl;
 
   cout << "| " << setw(8) << "State"
@@ -365,6 +393,8 @@ void printParsingTable(map<pair<int, char>, string> &parsingTable,
   for (char symbol : terminals) {
     cout << "----------";
   }
+    cout << "------";
+
   cout << "----------|" << endl;
 
   for (size_t i = 0; i < canonicalCollection.size(); i++) {
@@ -388,6 +418,8 @@ void printParsingTable(map<pair<int, char>, string> &parsingTable,
   for (char symbol : terminals) {
     cout << "----------";
   }
+    cout << "------";
+
   cout << "----------+" << endl;
 
   // Display the goto table
@@ -396,7 +428,8 @@ void printParsingTable(map<pair<int, char>, string> &parsingTable,
   for (char symbol : nonTerminals) {
     cout << "----------";
   }
-  cout << "+" << endl;
+
+  cout << "----+" << endl;
 
   cout << "| " << setw(8) << "State"
        << " |";
@@ -409,7 +442,8 @@ void printParsingTable(map<pair<int, char>, string> &parsingTable,
   for (char symbol : nonTerminals) {
     cout << "----------";
   }
-  cout << "|" << endl;
+
+  cout << "----|" << endl;
 
   for (size_t i = 0; i < canonicalCollection.size(); i++) {
     cout << "| " << setw(8) << i << " |";
@@ -427,11 +461,12 @@ void printParsingTable(map<pair<int, char>, string> &parsingTable,
   for (char symbol : nonTerminals) {
     cout << "----------";
   }
-  cout << "+" << endl;
+
+  cout << "----+" << endl;
 }
 
 bool parseString(string &input, map<pair<int, char>, string> &parsingTable,
-                 vector<vector<string>> &productions,
+                 vector<vector<string> > &productions,
                  map<pair<int, char>, int> gotoTable) {
   stack<int> stateStack;
   stateStack.push(0);
@@ -503,7 +538,7 @@ bool parseString(string &input, map<pair<int, char>, string> &parsingTable,
 
 // Function to display the canonical collection of LR(0) items
 void displayCanonicalCollection(
-    const vector<set<LR0Item>> &canonicalCollection) {
+    const vector<set<LR0Item> > &canonicalCollection) {
   for (size_t i = 0; i < canonicalCollection.size(); i++) {
     cout << "I" << i << ":" << endl;
     for (const LR0Item &item : canonicalCollection[i]) {
@@ -513,23 +548,66 @@ void displayCanonicalCollection(
   }
 }
 
-int main() {
-  // Define the grammar
-  vector<char> nonTerminals;
+int getProductions(vector<char> &nonTerminals, vector<char> &terminals, vector<vector<string> > &productions){
+  cout << "Please enter your grammar in the form \n\tS->AA\n\tA->aA\n\tA->b\n" << endl;
 
-  nonTerminals.push_back('D');
+
+  bool first = true;
+
+  string line;
+  cin.ignore();
+
+  while (getline(std::cin, line))
+  {
+      vector<string> production;
+      vector<string> productionZero;
+      if (line.empty()) {
+          break;
+      }
+      if(isupper(line[0]) && line[1] == '-' && line[2] == '>'){
+        auto it = find(nonTerminals.begin(),
+                 nonTerminals.end(), line[0]);
+
+        if (it == nonTerminals.end()) {
+          nonTerminals.push_back(line[0]);
+        }
+
+        if(first){
+          productionZero.push_back("D");
+          productionZero.push_back(string(1,line[0]));
+          productions.push_back(productionZero);
+          first = false;
+        }
+
+        production.push_back(string(1,line[0]));
+      }
+
+      for(int i = 3; i < line.length(); i++){
+        if(!isupper(line[i])){
+          auto it = find(terminals.begin(),
+                 terminals.end(), line[i]);
+          if (it == terminals.end()) {
+            terminals.push_back(line[i]);
+          }
+        }
+      }
+      production.push_back(line.substr(3, line.length()-1));
+
+      productions.push_back(production);
+  }
+  return 0;
+}
+
+void getQuestionProductions(vector<char> &nonTerminals, vector<char> &terminals, vector<vector<string> > &productions){
   nonTerminals.push_back('E');
   nonTerminals.push_back('T');
   nonTerminals.push_back('F');
 
-  vector<char> terminals;
   terminals.push_back('*');
   terminals.push_back('+');
   terminals.push_back('i');
   terminals.push_back('(');
   terminals.push_back(')');
-
-  vector<vector<string>> productions;
 
   vector<string> prodZero;
   vector<string> prodOne;
@@ -567,29 +645,102 @@ int main() {
   productions.push_back(prodFour);
   productions.push_back(prodFive);
   productions.push_back(prodSix);
+}
 
+int main() {
+  // Define the grammar
+  vector<char> nonTerminals;
+  vector<char> terminals;
+  vector<vector<string> > productions;
   map<pair<int, char>, string> parsingTable;
   map<pair<int, char>, int> gotoTable;
-
-  // Compute the canonical collection
-  vector<set<LR0Item>> canonicalCollection = computeCanonicalCollection(
-      nonTerminals, terminals, productions, parsingTable, gotoTable);
-
-  cout << "\nCanonical Collection:" << endl;
-  displayCanonicalCollection(canonicalCollection);
-  //
-  printParsingTable(parsingTable, gotoTable, productions, terminals,
-                    nonTerminals, canonicalCollection);
-
-  // Parse the input string
+  vector<set<LR0Item> > canonicalCollection;
   string input;
-  cout << "\nEnter the string to parse: ";
-  cin >> input;
-  input.append("$");
-  bool result = parseString(input, parsingTable, productions, gotoTable);
-  cout << "\nParsing result for string "
-       << "(" << input << ")"
-       << " : " << (result ? "ACCEPT" : "ERROR") << endl;
+  string choice;
+  bool result;
+
+  cout << "Choose amongst the following options to generate a SLR Parser for:\n" << endl;
+
+  cout << "1. Use the Default Grammar " << endl;
+  cout << "\t E -> E + T" << endl;
+  cout << "\t E -> T" << endl;
+  cout << "\t T -> T * F" << endl;
+  cout << "\t T -> F" << endl;
+  cout << "\t F -> (E)" << endl;
+  cout << "\t F -> i" << endl;
+
+
+  cout << "\n2. Enter your own Grammar" << endl;
+  cout << "\nelse. Exit" << endl;
+
+  cout << "\nPlease enter your choice : ";
+  cin >> choice;
+
+  switch (choice[0])
+  {
+  case '1':
+    cout << "\033[2J\033[1;1H";
+    cout << "\033[2J\033[1;1H";
+    cout << "\033[2J\033[1;1H";
+
+    getQuestionProductions(nonTerminals, terminals, productions);
+    // Compute the canonical collection
+    canonicalCollection = computeCanonicalCollection(
+        nonTerminals, terminals, productions, parsingTable, gotoTable);
+
+    cout << "\nCanonical Collection of LR(0) items:" << endl << endl;
+    displayCanonicalCollection(canonicalCollection);
+    //
+    printParsingTable(parsingTable, gotoTable, productions, terminals,
+                      nonTerminals, canonicalCollection);
+
+    // Parse the input string
+    cout << "\nEnter the string to parse: ";
+    cin >> input;
+    input.append("$");
+    result = parseString(input, parsingTable, productions, gotoTable);
+    cout << "\nParsing result for string "
+        << "(" << input << ")"
+        << " : " << (result ? "ACCEPT" : "ERROR") << endl;
+
+      /* code */
+      break;
+
+  case '2':
+    cout << "\033[2J\033[1;1H";
+    cout << "\033[2J\033[1;1H";
+    cout << "\033[2J\033[1;1H";
+
+    getProductions(nonTerminals, terminals, productions);
+
+    try{
+      canonicalCollection = computeCanonicalCollection(
+          nonTerminals, terminals, productions, parsingTable, gotoTable);
+
+      cout << "\nCanonical Collection of LR(0) items:" << endl << endl;
+      displayCanonicalCollection(canonicalCollection);
+      //
+      printParsingTable(parsingTable, gotoTable, productions, terminals,
+                        nonTerminals, canonicalCollection);
+
+      // Parse the input string
+      cout << "\nEnter the string to parse: ";
+      cin >> input;
+      input.append("$");
+      result = parseString(input, parsingTable, productions, gotoTable);
+      cout << "\nParsing result for string "
+          << "(" << input << ")"
+          << " : " << (result ? "ACCEPT" : "ERROR") << endl;
+    } catch (string e){
+      cout << "Cannot Construct an SLR Parser" << endl;
+    }
+    break;
+
+  default:
+    break;
+  }
 
   return 0;
+
+  
 }
