@@ -551,6 +551,7 @@ void displayCanonicalCollection(
 
 int getProductions(vector<char> &nonTerminals, vector<char> &terminals, vector<vector<string> > &productions){
   cout << "Please enter your grammar in the form \n\tS->AA\n\tA->aA\n\tA->b\n" << endl;
+  nonTerminals.push_back('D');
 
   bool first = true;
 
@@ -599,6 +600,7 @@ int getProductions(vector<char> &nonTerminals, vector<char> &terminals, vector<v
 }
 
 void getQuestionProductions(vector<char> &nonTerminals, vector<char> &terminals, vector<vector<string> > &productions){
+  nonTerminals.push_back('D');
   nonTerminals.push_back('E');
   nonTerminals.push_back('T');
   nonTerminals.push_back('F');
